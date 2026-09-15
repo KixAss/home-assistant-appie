@@ -87,23 +87,39 @@ Elke functie in `api.py` heeft een `(verified)` of `(inferred)` label:
 AH's inlogpagina eindigt altijd met een redirect naar het vaste custom
 scheme `appie://login-exit?code=...` (zo onderschept de officiële iOS-app
 het) — een gewone browser kan daar niets mee. Deze integratie lost dat
-**handmatig** op, in vier stappen die je in de config flow ziet:
+**handmatig** op via de Chrome DevTools ("Inspect element"), in de
+volgende stappen die je ook in de config flow ziet:
 
-1. Open de getoonde inlog-URL in je browser en log in bij Albert Heijn.
-2. Na inloggen probeert de pagina te verwijzen naar
-   `appie://login-exit?code=...` — je browser kan dat scheme niet openen,
-   dat is normaal.
-3. Open Chrome DevTools (F12) → tabblad **Network**, vóórdat je de laatste
-   inlogstap voltooit. Na het inloggen zie je daar een mislukte aanvraag
-   naar `appie://login-exit?code=...`. Klik erop en kopieer de volledige
-   URL.
-4. Plak die URL (of alleen de code erachter) in het veld in Home
-   Assistant.
+1. Open de getoonde inlog-URL in je browser en log **nog niet** in.
+2. Open eerst de DevTools: **F12**, of rechtermuisknop op de pagina →
+   **Inspecteren**. Klik bovenin het DevTools-paneel op het tabblad
+   **Network**. Zorg dat "Preserve log" aan staat (een vinkje links
+   bovenin dat tabblad) — dat voorkomt dat het overzicht leegloopt tijdens
+   het inloggen.
+3. Log nu in met je AH-account.
+4. Na een geslaagde login probeert de pagina te verwijzen naar
+   `appie://login-exit?code=...`. Je browser kan dat scheme niet openen —
+   dat is verwacht en niet erg. In de Network-tab verschijnt daar een
+   aparte regel voor, meestal met status **(failed)** of in het rood, met
+   een naam die begint met `login-exit`.
+5. Klik met de **rechtermuisknop** op die regel → **Copy** →
+   **Copy URL** (in Firefox: **Copy Link Location** / **Kopieer
+   linklocatie**). Dat plakt de complete
+   `appie://login-exit?code=xxxxxxxx...` op je klembord.
+6. Plak dat (de hele URL, of alleen het stuk na `code=`) in het veld in
+   Home Assistant en klik op Verzenden.
+
+Gebruik je geen Chrome? Firefox, Edge en Safari hebben allemaal een
+vergelijkbaar Network-paneel in hun ontwikkelaarstools (meestal ook via
+F12), alleen de exacte menu-namen kunnen iets afwijken.
 
 Home Assistant wisselt die code vervolgens in voor een sessie
 (`access_token`/`refresh_token`), die daarna zelf ververst wordt. Verlopen
-de codes te snel (ze zijn meestal maar kort geldig), rond de stappen dan
-gewoon opnieuw af en plak een nieuwe code.
+de codes te snel (ze zijn meestal maar kort geldig — rond de stappen dan
+gewoon opnieuw af en plak een nieuwe code), of vind je de `login-exit`-
+regel niet terug in de Network-tab, controleer dan of "Preserve log"
+inderdaad aanstond en of je de DevTools al open had staan vóórdat je op
+de laatste inlogknop klikte.
 
 ## Installatie
 
