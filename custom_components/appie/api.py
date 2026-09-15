@@ -199,7 +199,39 @@ class AppieClient:
     # v3 lists at all.
 
     @staticmethod
-    def _item_id(raw_item: dict[str, Any]) -> str:
+    def _linked_product_details(raw_item: dict[str, Any]) -> dict[str, Any]:
+        """Locate the nested product object for an item linked to a real
+        product *from within the AH app itself* (as opposed to one added
+        product-linked through this integration, which already carries a
+        flat `productId`).
+
+        (verified) Confirmed shape, from a live account's debug log:
+
+            {
+              ...,
+              "productDetails": {
+                "missingBonusOffersQuantity": 0,
+                "product": {"webshopId": 407171, "title": "...", ...}
+              }
+            }
+        """
+        return (raw_item.get("productDetails") or {}).get("product") or {}
+
+    @classmethod
+    def _extract_product_id(cls, raw_item: dict[str, Any]) -> int:
+        if raw_item.get("productId"):
+            return raw_item["productId"]
+        details = cls._linked_product_details(raw_item)
+        return details.get("webshopId") or details.get("id") or 0
+
+    @classmethod
+    def _extract_name(cls, raw_item: dict[str, Any]) -> str:
+        if raw_item.get("description"):
+            return raw_item["description"]
+        details = cls._linked_product_details(raw_item)
+        return details.get("title") or details.get("description") or ""
+
+    def _item_id(self, raw_item: dict[str, Any]) -> str:
         """Build a stable id for a v2 item.
 
         The v2 API has no per-item UUID (only a `listItemId` that looks
@@ -208,10 +240,10 @@ class AppieClient:
         or `text:<description>` for free-text ones. This is what
         check_item/delete_items below parse back.
         """
-        product_id = raw_item.get("productId")
+        product_id = self._extract_product_id(raw_item)
         if product_id:
             return f"product:{product_id}"
-        return f"text:{raw_item.get('description', '')}"
+        return f"text:{self._extract_name(raw_item)}"
 
     @staticmethod
     def _parse_item_id(item_id: str) -> tuple[int | None, str | None]:
@@ -221,24 +253,50 @@ class AppieClient:
             return None, item_id.removeprefix("text:")
         raise AppieApiError(f"unrecognized item id: {item_id!r}")
 
+    async def get_product_title(self, product_id: int) -> str | None:
+        """(verified) GET /mobile-services/product/detail/v4/fir/{id}.
+
+        Fallback used when a shopping-list item has a resolvable
+        productId but no usable name from get_shopping_list_items —
+        resolves the title via a direct product lookup instead.
+        """
+        try:
+            data = await self._request("GET", f"/mobile-services/product/detail/v4/fir/{product_id}")
+        except AppieApiError:
+            return None
+        card = data.get("productCard") or {}
+        return card.get("title") or None
+
     async def get_shopping_list_items(self) -> list[dict[str, Any]]:
         """(verified) GET /mobile-services/shoppinglist/v2/items."""
         data = await self._request("GET", "/mobile-services/shoppinglist/v2/items")
         raw_items = data.get("items") or []
         parsed = []
         for item in raw_items:
+            product_id = self._extract_product_id(item)
+            name = self._extract_name(item)
+            # (verified) strikedthrough sits at the top level of the item
+            # regardless of whether it's linked to a product — confirmed
+            # from a live account's debug log.
+            checked = bool(item.get("strikedthrough", False))
+            if product_id and not name:
+                # We know which product it is but not its title (the item
+                # itself didn't carry a usable one) — resolve it directly
+                # instead of showing a bare "Product #<id>".
+                name = await self.get_product_title(product_id) or ""
             entry = {
                 "id": self._item_id(item),
-                "product_id": item.get("productId") or 0,
+                "product_id": product_id,
                 "quantity": max(item.get("quantity") or 1, 1),
-                "checked": bool(item.get("strikedthrough", False)),
-                "name": item.get("description") or "",
+                "checked": checked,
+                "name": name,
             }
             if not entry["name"] and not entry["product_id"]:
-                # Neither field we rely on came back — this is the shape
-                # this integration doesn't fully understand yet. Log it at
-                # warning level (visible without turning on debug logging)
-                # so the raw item can be reported for a fix.
+                # Neither field we rely on came back, even after the
+                # fallbacks above — this is a shape this integration
+                # doesn't understand yet. Log it at warning level (visible
+                # without turning on debug logging) so the raw item can be
+                # reported for a fix.
                 _LOGGER.warning(
                     "Shopping list item with no name/productId — raw AH data: %s", item
                 )

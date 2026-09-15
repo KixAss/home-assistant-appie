@@ -1,5 +1,32 @@
 # Changelog
 
+- **v0.9** — De "Product #0"/afvink-sync-bug uit v0.8 is nu **bevestigd
+  opgelost** (niet langer een gok): een gebruiker deelde de exacte ruwe
+  AH-data via de waarschuwing-log. Voor items die je vanuit de AH-app zelf
+  aan een product koppelt, zit de productinfo genest onder
+  `productDetails.product` (met `webshopId`/`title`), in plaats van in de
+  velden die voor rechtstreeks-toegevoegde producten gebruikt worden. De
+  afvink-status (`strikedthrough`) bleek altijd al gewoon top-level te
+  staan — dat werkte dus al goed zodra de naam/ID wél herkend werden. Dit
+  is nu met de exacte real-world data uit die log getest en bevestigd
+  correct.
+- **v0.8** — Items die je **vanuit de AH-app zelf** aan een echt product
+  koppelt (nadat ze als vrije tekst via HA waren toegevoegd) kwamen
+  daarna als "Product #0" terug in HA, en afvinken in de app werd niet
+  gesynchroniseerd. Dit wijst erop dat AH's antwoord voor zulke items een
+  andere vorm heeft dan voor items die al vanaf het begin product-
+  gekoppeld zijn toegevoegd (nog niet met zekerheid vastgesteld zonder de
+  ruwe data te zien). Twee verdedigende verbeteringen, nog steeds
+  best-effort:
+  - `get_shopping_list_items` kijkt nu ook naar een eventueel genest
+    `product`-object voor naam/ID/afvink-status, niet alleen naar
+    top-level velden.
+  - Is er wél een `productId` bekend maar geen naam, dan wordt de
+    producttitel alsnog live opgehaald via het (bevestigde)
+    product-detail-endpoint, in plaats van "Product #&lt;id&gt;" te tonen.
+  - Blijft een item toch nog onherkenbaar, dan verschijnt nog steeds de
+    waarschuwing met de ruwe AH-data in de log (zie "Debug-logging" in de
+    README) — dat is de snelste weg naar een definitieve fix.
 - **v0.7** — Items worden nu **standaard als vrije tekst** toegevoegd, in
   zowel de to-do-lijst als de `appie.add_item`-service. Dat is
   betrouwbaarder dan productmatching via zoeken: vrije tekst gebruikt
