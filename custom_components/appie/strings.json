@@ -1,0 +1,34 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Log in to Albert Heijn",
+        "description": "1. Open this link in your browser and log in with your AH account:\n\n{login_url}\n\n2. After logging in, the page tries to redirect to an address starting with `appie://login-exit?code=...`. The browser can't open that — that's expected.\n3. Open Chrome DevTools (F12 or right-click → Inspect) → the **Network** tab, before clicking the final login step. After logging in you'll see a (red/failed) request to `appie://login-exit?code=...` there. Click it and copy the full URL.\n4. Paste that URL (or just the code after it) below.",
+        "data": {
+          "callback": "appie://login-exit?code=... (or just the code)"
+        }
+      }
+    },
+    "error": {
+      "invalid_code": "Could not find a login code in what you pasted. Paste the full `appie://login-exit?code=...` URL or just the code.",
+      "cannot_connect": "Could not exchange the login code for an Albert Heijn session. The code may have expired — redo the login steps and paste a fresh code."
+    },
+    "abort": {
+      "already_configured": "Albert Heijn is already configured."
+    }
+  },
+  "services": {
+    "add_item": {
+      "name": "Add item",
+      "description": "Adds an item to your Albert Heijn shopping list (as free text by default)."
+    },
+    "checkout": {
+      "name": "Send to cart",
+      "description": "Moves unchecked, product-linked items into an order in the AH app (free-text items are skipped)."
+    },
+    "clear_list": {
+      "name": "Clear shopping list",
+      "description": "Removes all items from your Albert Heijn shopping list."
+    }
+  }
+}

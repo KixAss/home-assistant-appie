@@ -1,0 +1,46 @@
+add_item:
+  name: Voeg item toe
+  description: >-
+    Voegt een item toe aan je Albert Heijn boodschappenlijst. Standaard als
+    vrije tekst (meest betrouwbaar). Zet "Zoek als product" aan om te
+    proberen een echt product te koppelen (nodig voor bijv. "Naar
+    winkelwagen") — als daar geen goede match voor wordt gevonden, valt het
+    alsnog terug op vrije tekst.
+  fields:
+    name:
+      name: Naam
+      description: Wat je wilt toevoegen, bijv. "pindakaas".
+      required: true
+      example: "pindakaas"
+      selector:
+        text:
+    quantity:
+      name: Aantal
+      description: Hoeveel stuks.
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 50
+          mode: box
+    free_text:
+      name: Alleen vrije tekst
+      description: >-
+        Aan (standaard): sla productzoeken over. Uit: probeer eerst een
+        product te koppelen via zoeken.
+      default: true
+      selector:
+        boolean:
+
+checkout:
+  name: Naar winkelwagen
+  description: >-
+    Zet alle niet-afgevinkte, product-gekoppelde items van je
+    boodschappenlijst om naar een bestelling/winkelwagen in de Albert
+    Heijn app. Items die als vrije tekst zijn toegevoegd worden hierbij
+    overgeslagen, omdat een bestelling een echte productkoppeling nodig
+    heeft.
+
+clear_list:
+  name: Leeg boodschappenlijst
+  description: Verwijdert alle items van je Albert Heijn boodschappenlijst.

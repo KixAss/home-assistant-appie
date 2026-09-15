@@ -1,0 +1,34 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Log in bij Albert Heijn",
+        "description": "1. Open deze link in je browser en log in met je AH-account:\n\n{login_url}\n\n2. Na inloggen probeert de pagina door te verwijzen naar een adres dat begint met `appie://login-exit?code=...`. De browser kan dat niet openen — dat is normaal.\n3. Open de Chrome DevTools (F12 of rechtermuisknop → Inspecteren) → tabblad **Network**, vóórdat je op de laatste inlogstap klikt. Na het inloggen zie je daar een (rode/mislukte) aanvraag naar `appie://login-exit?code=...`. Klik erop en kopieer de volledige URL.\n4. Plak die URL (of alleen de code erachter) hieronder.",
+        "data": {
+          "callback": "appie://login-exit?code=... (of alleen de code)"
+        }
+      }
+    },
+    "error": {
+      "invalid_code": "Kon geen inlogcode vinden in wat je hebt geplakt. Plak de volledige `appie://login-exit?code=...` URL of alleen de code.",
+      "cannot_connect": "Kon de inlogcode niet inwisselen voor een sessie bij Albert Heijn. De code is mogelijk verlopen — rond de loginstappen opnieuw af en plak een nieuwe code."
+    },
+    "abort": {
+      "already_configured": "Albert Heijn is al geconfigureerd."
+    }
+  },
+  "services": {
+    "add_item": {
+      "name": "Voeg item toe",
+      "description": "Voegt een item toe aan je Albert Heijn boodschappenlijst (standaard als vrije tekst)."
+    },
+    "checkout": {
+      "name": "Naar winkelwagen",
+      "description": "Zet niet-afgevinkte, product-gekoppelde items om naar een bestelling in de AH-app (vrije-tekst-items worden overgeslagen)."
+    },
+    "clear_list": {
+      "name": "Leeg boodschappenlijst",
+      "description": "Verwijdert alle items van je Albert Heijn boodschappenlijst."
+    }
+  }
+}
