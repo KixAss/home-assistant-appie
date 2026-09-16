@@ -1,0 +1,47 @@
+# Voorbeeldautomation: telt vaatwasblokjes af bij elke wasbeurt, en zet
+# ze automatisch op de Albert Heijn boodschappenlijst zodra de teller op
+# 10 komt.
+#
+# Vervang vóór gebruik:
+#   - sensor.vaatwasser_operation_state  -> jouw vaatwasser-sensor
+#     ("run" is de waarde die "aan het wassen" betekent bij veel
+#     Home Connect/Miele-achtige integraties; check zelf welke waarde
+#     jouw sensor gebruikt)
+#   - input_number.vaat_was_blokjes      -> jouw eigen teller-helper
+#   - todo.boodschappenlijst             -> de entity_id van deze
+#     integratie (staat vast als je de standaardnaam aanhoudt)
+#   - '234096'                           -> het echte AH webshopId van
+#     jouw vaatwasblokjes (zie de README voor hoe je dat opzoekt)
+#
+# '234096' als tekst (met quotes) is bewust: een kaal getal als item-tekst
+# wordt door deze integratie herkend als een product-ID en direct
+# gekoppeld toegevoegd (zie custom_components/appie/todo.py), in plaats
+# van als losse vrije tekst "234096".
+
+alias: Vaatwasblokjes naar boodschappenlijst
+description: ""
+triggers:
+  - trigger: state
+    entity_id:
+      - sensor.vaatwasser_operation_state
+    to:
+      - run
+conditions: []
+actions:
+  - action: input_number.decrement
+    metadata: {}
+    target:
+      entity_id: input_number.vaat_was_blokjes
+    data: {}
+  - if:
+      - condition: state
+        entity_id: input_number.vaat_was_blokjes
+        state: "10"
+    then:
+      - action: todo.add_item
+        metadata: {}
+        target:
+          entity_id: todo.boodschappenlijst
+        data:
+          item: "234096"
+mode: single

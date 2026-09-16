@@ -1,0 +1,45 @@
+# Voorbeeldautomation: hoort bij vaatwasblokjes_naar_boodschappenlijst.yaml.
+# Zodra je het gekoppelde product afvinkt (in Home Assistant óf in de AH-app
+# zelf — zie README, dat laatste duurt tot ~60s door de poll-interval),
+# telt deze automation de voorraad-teller weer op met de inhoud van één
+# pak (hier: 40 stuks).
+#
+# Vervang vóór gebruik:
+#   - todo.boodschappenlijst      -> de entity_id van deze integratie
+#   - 'product:234096'            -> 'product:' + hetzelfde webshopId als
+#     in de andere automation
+#   - input_number.vaat_was_blokjes en de '+ 40' -> jouw eigen
+#     teller-helper en pakgrootte
+#
+# Waarom via todo.get_items i.p.v. trigger-data: de todo.item_completed-
+# trigger van Home Assistant geeft geen bruikbare item_ids terug als
+# sjabloonvariabele (ondanks wat de eigen "Good to know"-tekst suggereert
+# — alleen entity_id/from_state/to_state zijn gedocumenteerd). Opvragen
+# via todo.get_items en filteren op 'uid' is de robuuste manier.
+
+alias: Vaatwasblokjes-voorraad bijwerken na aankoop
+description: ""
+triggers:
+  - trigger: todo.item_completed
+    target:
+      entity_id: todo.boodschappenlijst
+conditions: []
+actions:
+  - action: todo.get_items
+    target:
+      entity_id: todo.boodschappenlijst
+    data:
+      status: completed
+    response_variable: completed_items
+  - condition: template
+    value_template: >-
+      {{ completed_items['todo.boodschappenlijst']['items']
+         | selectattr('uid', 'eq', 'product:234096')
+         | list | count > 0 }}
+  - action: input_number.set_value
+    metadata: {}
+    target:
+      entity_id: input_number.vaat_was_blokjes
+    data:
+      value: "{{ states('input_number.vaat_was_blokjes') | float + 40 }}"
+mode: single
