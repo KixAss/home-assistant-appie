@@ -59,17 +59,22 @@ class AppieTodoListEntity(CoordinatorEntity[AppieCoordinator], TodoListEntity):
         return [_to_todo_item(item) for item in self.coordinator.data]
 
     async def async_create_todo_item(self, item: TodoItem) -> None:
+        summary = item.summary.strip() if item.summary else ""
         try:
-            # Added as free text by default — see api.py's module docstring
-            # and check_item/delete_items docstrings for why product-linked
-            # items are currently less reliable (search-matching issues,
-            # and an AH response shape for product items that isn't fully
-            # understood yet). Use the appie.add_item service with
-            # free_text: false if you specifically want a product link
-            # (e.g. so appie.checkout can pick it up).
-            await self.coordinator.client.add_item(name=item.summary, quantity=1, free_text=True)
+            if summary.isdigit():
+                # Typed a bare number — treat it as a real AH product ID
+                # and link it directly, skipping search/free-text entirely.
+                await self.coordinator.client.add_item(product_id=int(summary), quantity=1)
+            else:
+                # Added as free text by default — see api.py's module
+                # docstring and check_item/delete_items docstrings for why
+                # product-linked items via search are currently less
+                # reliable. Use the appie.add_item service with
+                # free_text: false if you want search-based product
+                # linking instead of typing a product ID directly.
+                await self.coordinator.client.add_item(name=summary, quantity=1, free_text=True)
         except AppieApiError:
-            _LOGGER.exception("Failed to add item '%s' to AH shopping list", item.summary)
+            _LOGGER.exception("Failed to add item '%s' to AH shopping list", summary)
             raise
         await self.coordinator.async_request_refresh()
 

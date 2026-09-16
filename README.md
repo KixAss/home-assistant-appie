@@ -135,18 +135,58 @@ Via [HACS](https://hacs.xyz/): voeg deze repo toe als custom repository
 ## Wat je krijgt
 
 - Entiteit `todo.boodschappenlijst`, elke 60s gesynchroniseerd:
-  - Item toevoegen in HA → toegevoegd als **vrije tekst** aan je AH-lijst
-    (standaardgedrag sinds v0.7 — zie [CHANGELOG.md](CHANGELOG.md)).
+  - Item toevoegen in HA als tekst → toegevoegd als **vrije tekst** aan je
+    AH-lijst (standaardgedrag sinds v0.7 — zie [CHANGELOG.md](CHANGELOG.md)).
+  - Item toevoegen in HA als **kaal getal** (bijv. "441199") → herkend als
+    een echt AH product-ID en direct correct gekoppeld toegevoegd, zonder
+    te zoeken. De volledige lijst wordt daarna opnieuw opgehaald zodat je
+    ook meteen de juiste productnaam ziet.
   - Item afvinken in HA → ook afgevinkt in de AH-app (zie "(inferred)"
     hierboven).
   - Item verwijderen in HA → verwijderd via `quantity: 0` (zie
     "(inferred)" hierboven — niet 100% bevestigd gedrag).
   - Wijzigingen die je rechtstreeks in de AH-app maakt, verschijnen bij de
     volgende refresh ook in HA.
-- Services: `appie.add_item` (met optie `free_text: false` voor een
-  poging tot echte productkoppeling via zoeken), `appie.checkout` (zet
-  product-gekoppelde items om naar bestelling/winkelwagen — vrije-tekst-
-  items worden daarbij overgeslagen), `appie.clear_list`.
+- Services: `appie.add_item` (met `product_id` voor een exact AH-
+  webshopId, of `free_text: false` voor een poging tot productkoppeling
+  via zoeken op naam), `appie.checkout` (zet product-gekoppelde items om
+  naar bestelling/winkelwagen — vrije-tekst-items worden daarbij
+  overgeslagen), `appie.clear_list`.
+
+## Voorbeeldautomations
+
+In [`examples/automations/`](examples/automations/) staan twee kant-en-
+klare automations voor een concreet gebruiksscenario: automatisch
+vaatwasblokjes bijhouden en bijbestellen. Kopieer de YAML in Home
+Assistant (Instellingen → Automatiseringen → rechtsboven ⋮ → Automatisering
+importeren/bewerken in YAML, of plak de inhoud in `automations.yaml`) en
+pas de entity_id's en het product-ID aan naar jouw situatie.
+
+1. **[`vaatwasblokjes_naar_boodschappenlijst.yaml`](examples/automations/vaatwasblokjes_naar_boodschappenlijst.yaml)**
+   — telt een `input_number`-teller één af zodra je vaatwasser gaat
+   draaien. Staat de teller op 10, dan wordt het product direct
+   toegevoegd aan `todo.boodschappenlijst` via het echte AH webshopId
+   (een kaal getal als item-tekst wordt door deze integratie herkend als
+   product-ID, zie "Wat je krijgt" hierboven).
+
+   *Zoek zelf het webshopId van jouw vaatwasblokjes op*: roep eenmalig de
+   service `appie.add_item` aan met de naam van het product en
+   `free_text: false`, kijk daarna naar het toegevoegde item in
+   `todo.boodschappenlijst` (uid begint met `product:`) — of zoek het
+   product op ah.nl en haal het nummer uit de URL.
+
+2. **[`vaatwasblokjes_voorraad_bijwerken.yaml`](examples/automations/vaatwasblokjes_voorraad_bijwerken.yaml)**
+   — reageert op `todo.item_completed` (afvinken, zowel in HA als —met
+   tot ~60s vertraging door de poll-interval— in de AH-app zelf) en telt
+   de voorraad-teller weer op met de pakgrootte, zodra het afgevinkte item
+   matcht op `product:<jouw-webshopId>`.
+
+   Let op: de `todo.item_completed`-trigger geeft in de praktijk geen
+   bruikbare `item_ids` als sjabloonvariabele terug (ondanks wat Home
+   Assistants eigen documentatie daarover suggereert — alleen
+   `entity_id`/`from_state`/`to_state` zijn daadwerkelijk gedocumenteerd).
+   Dit voorbeeld vraagt daarom de afgevinkte items zelf op via
+   `todo.get_items` en filtert op `uid`, wat betrouwbaar werkt.
 
 ## Wat is getest
 

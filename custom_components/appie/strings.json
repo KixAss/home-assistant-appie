@@ -20,7 +20,7 @@
   "services": {
     "add_item": {
       "name": "Add item",
-      "description": "Adds an item to your Albert Heijn shopping list (as free text by default)."
+      "description": "Adds an item to your Albert Heijn shopping list by name (free text) or an exact product ID."
     },
     "checkout": {
       "name": "Send to cart",

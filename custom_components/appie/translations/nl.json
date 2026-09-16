@@ -20,7 +20,7 @@
   "services": {
     "add_item": {
       "name": "Voeg item toe",
-      "description": "Voegt een item toe aan je Albert Heijn boodschappenlijst (standaard als vrije tekst)."
+      "description": "Voegt een item toe aan je Albert Heijn boodschappenlijst via naam (vrije tekst) of een exact product-ID."
     },
     "checkout": {
       "name": "Naar winkelwagen",

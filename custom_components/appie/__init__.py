@@ -12,6 +12,7 @@ from .api import AppieClient
 from .const import (
     ATTR_FREE_TEXT,
     ATTR_NAME,
+    ATTR_PRODUCT_ID,
     ATTR_QUANTITY,
     DOMAIN,
     SERVICE_ADD_ITEM,
@@ -24,7 +25,8 @@ PLATFORMS = ["todo"]
 
 ADD_ITEM_SCHEMA = vol.Schema(
     {
-        vol.Required(ATTR_NAME): str,
+        vol.Optional(ATTR_NAME): str,
+        vol.Optional(ATTR_PRODUCT_ID): int,
         vol.Optional(ATTR_QUANTITY, default=1): int,
         vol.Optional(ATTR_FREE_TEXT, default=True): bool,
     }
@@ -76,7 +78,8 @@ def _register_services(hass: HomeAssistant) -> None:
         client = _first_client()
         try:
             await client.add_item(
-                name=call.data[ATTR_NAME],
+                name=call.data.get(ATTR_NAME),
+                product_id=call.data.get(ATTR_PRODUCT_ID),
                 quantity=call.data.get(ATTR_QUANTITY, 1),
                 free_text=call.data.get(ATTR_FREE_TEXT, True),
             )

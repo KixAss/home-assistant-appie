@@ -1,5 +1,21 @@
 # Changelog
 
+- **Voorbeeldautomations toegevoegd** — `examples/automations/` bevat nu
+  een uitgewerkt vaatwasblokjes-scenario: automatisch aftellen bij het
+  starten van de vaatwasser, toevoegen aan de lijst via product-ID zodra
+  de teller op 10 staat, en de voorraad weer bijtellen zodra het item
+  wordt afgevinkt (via `todo.get_items` + `uid`-filter, omdat
+  `todo.item_completed`'s trigger-data geen bruikbare `item_ids`
+  teruggeeft). Zie de README-sectie "Voorbeeldautomations". Geen
+  wijzigingen aan de integratie zelf.
+- **v0.10** — Je kunt nu een product direct via een echt AH-webshopId
+  toevoegen, zonder te zoeken:
+  - Typ een **kaal getal** (bijv. "441199") in de to-do-lijst → wordt
+    herkend als product-ID en direct correct gekoppeld toegevoegd. Daarna
+    wordt de volledige lijst opnieuw opgehaald, zodat de echte productnaam
+    meteen zichtbaar is (via de bestaande live-lookup-fallback uit v0.8).
+  - De `appie.add_item`-service heeft nu ook een `product_id`-veld, voor
+    gebruik in automations zonder de to-do-lijst.
 - **v0.9** — De "Product #0"/afvink-sync-bug uit v0.8 is nu **bevestigd
   opgelost** (niet langer een gok): een gebruiker deelde de exacte ruwe
   AH-data via de waarschuwing-log. Voor items die je vanuit de AH-app zelf

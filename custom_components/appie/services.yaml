@@ -1,19 +1,27 @@
 add_item:
   name: Voeg item toe
   description: >-
-    Voegt een item toe aan je Albert Heijn boodschappenlijst. Standaard als
-    vrije tekst (meest betrouwbaar). Zet "Zoek als product" aan om te
-    proberen een echt product te koppelen (nodig voor bijv. "Naar
-    winkelwagen") — als daar geen goede match voor wordt gevonden, valt het
-    alsnog terug op vrije tekst.
+    Voegt een item toe aan je Albert Heijn boodschappenlijst. Geef "Naam"
+    (standaard vrije tekst) óf "Product-ID" op. Een Product-ID wordt altijd
+    direct en correct gekoppeld — handig als je het exacte AH-webshopId al
+    weet (bijv. uit een productlink).
   fields:
     name:
       name: Naam
-      description: Wat je wilt toevoegen, bijv. "pindakaas".
-      required: true
+      description: Wat je wilt toevoegen, bijv. "pindakaas". Laat leeg als je Product-ID gebruikt.
       example: "pindakaas"
       selector:
         text:
+    product_id:
+      name: Product-ID
+      description: >-
+        Het exacte AH-webshopId van een product (bijv. 441199). Wordt
+        altijd direct gekoppeld, zonder te zoeken. Heeft voorrang op Naam.
+      example: 441199
+      selector:
+        number:
+          min: 1
+          mode: box
     quantity:
       name: Aantal
       description: Hoeveel stuks.
@@ -26,8 +34,9 @@ add_item:
     free_text:
       name: Alleen vrije tekst
       description: >-
-        Aan (standaard): sla productzoeken over. Uit: probeer eerst een
-        product te koppelen via zoeken.
+        Aan (standaard): sla productzoeken over bij "Naam". Uit: probeer
+        eerst een product te koppelen via zoeken. Wordt genegeerd als
+        Product-ID is ingevuld.
       default: true
       selector:
         boolean:
